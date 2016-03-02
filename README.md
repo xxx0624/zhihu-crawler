@@ -45,10 +45,10 @@
     ```
 
 #开始爬取知乎zhihu信息
-'''python
-python zhihu_user_crawler.py
-'''
 
+1. 先在setting中设置知乎账号和密码以及开始的url
+2. python zhihu_user_crawler.py
+   
 #查看运行结果
 
 ```
