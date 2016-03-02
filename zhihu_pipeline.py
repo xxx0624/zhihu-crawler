@@ -10,6 +10,7 @@ class MongoDBPipeline(object):
 		client = MongoClient(MONGODB_IP, MONGODB_PORT)
 		self.db = client["zhihu"]
 		self.zh_user_col = self.db["zh_user"]
+		'''
 		self.zh_ask_col = self.db["zh_ask"]
 		self.zh_answer_col = self.db["zh_answer"]
 		self.zh_followee_col = self.db["zh_followee"]
@@ -18,6 +19,7 @@ class MongoDBPipeline(object):
 		self.gh_user_col = self.db["gh_user"]
 		self.om_user_col = self.db["om_user"]
 		self.gh_repo_col = self.db["gh_repo"]
+		'''
 
 
 	def saveOrUpdate(self, collection, item):
@@ -27,12 +29,23 @@ class MongoDBPipeline(object):
 			tmp = collection.find_one({"_id":_id})
 			#id not exitst
 			if tmp is None:
-				print _id
-				collection.insert(dict(item))
+				try:
+					collection.insert(dict(item))
+				except Exception as e:
+					self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
+					self.db = client["zhihu"]
+					self.zh_user_col = self.db["zh_user"]
+					collection.insert(dict(item))
 			else:
-				collection.update({"_id":_id}, dict(item))
+				try:
+					collection.update({"_id":_id}, dict(item))
+				except Exception as e:
+					self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
+					self.db = client["zhihu"]
+					self.zh_user_col = self.db["zh_user"]
+					collection.update({"_id":_id}, dict(item))
 		else:
-			collection.insert(dict(item))
+			pass
 
 	def process_item(self, item):
 		if isinstance(item, ZhihuUserItem):

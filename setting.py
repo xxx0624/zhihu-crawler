@@ -4,13 +4,13 @@
 SLEEP_TIME = 0
 
 #user name
-EMAIL = '273589630@qq.com'
+EMAIL = 'your zhihu username'
 
 #user pwd
-PASSWORD = 'qqqqxxx0624'
+PASSWORD = 'your zhihu user pwd'
 
 #start url
-START_URL = "https://www.zhihu.com/people/xxx0624/about"
+START_URL = "https://www.zhihu.com/people/233333333/about"
 
 #the max depth to follow
 MAX_DEPTH = 20
