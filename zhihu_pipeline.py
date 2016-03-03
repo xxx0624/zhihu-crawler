@@ -4,12 +4,15 @@ from setting import *
 import json
 
 from pymongo import MongoClient
+from datetime import datetime
 
 class MongoDBPipeline(object):
 	def __init__(self):
 		client = MongoClient(MONGODB_IP, MONGODB_PORT)
 		self.db = client["zhihu"]
 		self.zh_user_col = self.db["zh_user"]
+		self._now_time = str(datetime.strptime(str(datetime.today()), "%Y-%m-%d %H:%M:%S.%f"))
+
 		'''
 		self.zh_ask_col = self.db["zh_ask"]
 		self.zh_answer_col = self.db["zh_answer"]
@@ -24,28 +27,68 @@ class MongoDBPipeline(object):
 
 	def saveOrUpdate(self, collection, item):
 		_id= dict(item).get("_id")
-
 		if _id is not None:
-			tmp = collection.find_one({"_id":_id})
+			try:
+				tmp = collection.find_one({"_id":_id})
+			except Exception as e:
+				self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
+				self.db = self.client["zhihu"]
+				self.zh_user_col = self.db["zh_user"]
+				print '['+self._now_time+']'+' find error...'
 			#id not exitst
 			if tmp is None:
 				try:
 					collection.insert(dict(item))
 				except Exception as e:
 					self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
-					self.db = client["zhihu"]
+					self.db = self.client["zhihu"]
 					self.zh_user_col = self.db["zh_user"]
-					collection.insert(dict(item))
+					try:
+						collection.insert(dict(item))
+					except Exception as e:
+						print '['+self._now_time+']'+' ignore the user ' + item['_id']
 			else:
 				try:
 					collection.update({"_id":_id}, dict(item))
 				except Exception as e:
 					self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
-					self.db = client["zhihu"]
+					self.db = self.client["zhihu"]
 					self.zh_user_col = self.db["zh_user"]
-					collection.update({"_id":_id}, dict(item))
+					try:
+						collection.update({"_id":_id}, dict(item))
+					except Exception as e:
+						print '['+self._now_time+']'+' ignore the user ' + item['_id']
 		else:
 			pass
+
+	def find_item(self, user_id):
+		if user_id is None:
+			print 'the user '+user_id+' is None, cannot find it in mongodb...'
+			return -1
+		try:
+			tmp = self.zh_user_col.find_one({"_id":user_id})
+			if tmp is None:
+				#not exist
+				return 0
+			else:
+				#user_id exist
+				return 1
+		except Exception as e:
+			'''
+			self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
+			self.db = self.client["zhihu"]
+			self.zh_user_col = self.db["zh_user"]
+			tmp = self.zh_user_col.find_one({"_id":user_id})
+			if tmp is None:
+				#not exist
+				return 0
+			else:
+				#user_id exist
+				return 1
+			'''
+			print '['+self._now_time+']'+' find error...'
+			#special case
+			return -2
 
 	def process_item(self, item):
 		if isinstance(item, ZhihuUserItem):

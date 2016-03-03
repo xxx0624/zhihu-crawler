@@ -11,10 +11,9 @@ from datetime import datetime
 from zhihu_pipeline import MongoDBPipeline
 
 import sys, time
-import logging
+import logging, requests
 import codecs, json
 
-import codecs
 
 
 reload(sys)
@@ -141,7 +140,6 @@ class ZhihuUserCrawler(object):
 		followee_num = zhihu_user['followee_num'] = statistics[0]
 		follower_num = zhihu_user['follower_num'] = statistics[1]
 
-
 		statistics = selector.xpath(zhihu_user.statistics_other_rule)
 		if len(statistics) < 4:
 			statistics = ["0", "0", "0", "0"]
@@ -159,6 +157,13 @@ class ZhihuUserCrawler(object):
 		zhihu_user['collection_num'] = statistics[4]
 		zhihu_user['log_num'] = statistics[5]
 
+		select_list = selector.xpath(zhihu_user.img_rule)
+		if len(select_list) == 0:
+			select_list = [""]
+		zhihu_user['img'] = self._get_xl_img(''.join(select_list[0]))
+		#save the img
+		self._download_img(zhihu_user['img'], zhihu_user['_id'], IMG_FOLDER)
+
 		print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+'get user:' + zhihu_user['_id'] + ' info!'
 
 		'''
@@ -175,7 +180,7 @@ class ZhihuUserCrawler(object):
 			return 
 		
 		#one user is ok
-		save_user = self.save_zhihu_user(self._encode_zhihu_user_info(zhihu_user))
+		save_user = self.save_zhihu_user(zhihu_user)
 		if save_user:
 			print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+'save user:' + zhihu_user['_id'] + ' to mongod! It\'s done! '
 		else:
@@ -209,9 +214,10 @@ class ZhihuUserCrawler(object):
 		for link in selector.xpath('//div[@class="zm-list-content-medium"]/h2/a/@href'):
 			#link  ===> http://www.zhihu.com/people/...
 			username_tmp = link.split('/')[-1]
-			print '\n['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+"start parse user:" + username_tmp + '...'
-			response, soup = ZhihuCommon.get("https://www.zhihu.com/people/"+username_tmp+"/about")
-			self.parse_zhihu_user(response, soup, depth+1)
+			if self.mgd.find_item(username_tmp) == 0:
+				print '\n['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+"start parse user:" + username_tmp + '...'
+				response, soup = ZhihuCommon.get("https://www.zhihu.com/people/"+username_tmp+"/about")
+				self.parse_zhihu_user(response, soup, depth+1)
 
 	def save_zhihu_user(self, zhihu_user):
 		print '['+self._now_time+']'+' '+'start record the user ', zhihu_user['_id']
@@ -234,6 +240,24 @@ class ZhihuUserCrawler(object):
 			return False
 		else:
 			return False
+
+	def _get_xl_img(self, img_url):
+		#https://pic4.zhimg.com/db444fc1609c86ec6b650b7f61dfa2ef_s.jpg
+		#https://pic4.zhimg.com/db444fc1609c86ec6b650b7f61dfa2ef_l.jpg
+		#to
+		#https://pic4.zhimg.com/db444fc1609c86ec6b650b7f61dfa2ef_xl.jpg
+		_pos = img_url.find('_')
+		if _pos < 0:
+			print 'the img:'+img_url+' dont exist xlarge img...'
+			return img_url
+		return img_url[:_pos+1] + 'xl.jpg'
+
+	def _download_img(self, url, save_img_name, save_img_place):
+		print '['+self._now_time+']'+' '+' the imgurl is ' + url
+		img =  requests.get(url, stream=True)
+		with open(save_img_place+'/'+save_img_name+'.jpg', 'wb') as fw:
+			for chunk in img.iter_content():
+				fw.write(chunk)
 
 	def _encode_zhihu_user_info(self, zhihu_user):
 		zhihu_user['username'] = zhihu_user['username'].encode('ISO 8859-1')
@@ -263,4 +287,4 @@ if __name__ == '__main__':
 	if login_flag:
 		time.sleep(SLEEP_TIME)
 		zhc.start_parse("")
-	print '['+self._now_time+']'+' '+'over......................................'
+	print '['+zhc._now_time+']'+' '+'over......................................'

@@ -6,6 +6,7 @@ class ZhihuUserItem(Item):
 	_id = Field()
 	url = Field()
 	img = Field()
+	img_rule = '//div[@class="zm-profile-header-avatar-container "]/img[@class="Avatar Avatar--l"]/@src'
 	username = Field()
 	nickname = Field()
 	nickname_rule = "//div[@class='title-section ellipsis']/a[@class='name']/text()"

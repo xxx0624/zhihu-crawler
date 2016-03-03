@@ -4,21 +4,24 @@
 SLEEP_TIME = 0
 
 #user name
-EMAIL = 'your zhihu username'
+EMAIL = '273589630@qq.com'
 
 #user pwd
-PASSWORD = 'your zhihu user pwd'
+PASSWORD = 'qqqqxxx0624'
 
 #start url
-START_URL = "https://www.zhihu.com/people/233333333/about"
+START_URL = "https://www.zhihu.com/people/xxx0624/about"
 
-#the max depth to follow
+#the max depth to follow url
 MAX_DEPTH = 20
 
 #mongodb ip
 MONGODB_IP = "localhost"
 #mongodb port
 MONGODB_PORT = 27017
+
+#the place for user img to save
+IMG_FOLDER = 'UserImg'
 
 HEADER={
     "Host": "www.zhihu.com",
