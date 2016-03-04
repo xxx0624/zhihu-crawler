@@ -8,8 +8,8 @@ from datetime import datetime
 
 class MongoDBPipeline(object):
 	def __init__(self):
-		client = MongoClient(MONGODB_IP, MONGODB_PORT)
-		self.db = client["zhihu"]
+		self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
+		self.db = self.client["zhihu"]
 		self.zh_user_col = self.db["zh_user"]
 		self._now_time = str(datetime.strptime(str(datetime.today()), "%Y-%m-%d %H:%M:%S.%f"))
 
@@ -34,7 +34,7 @@ class MongoDBPipeline(object):
 				self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
 				self.db = self.client["zhihu"]
 				self.zh_user_col = self.db["zh_user"]
-				print '['+self._now_time+']'+' find error...'
+				print '['+self._now_time+']'+' id find error...'
 			#id not exitst
 			if tmp is None:
 				try:
@@ -70,14 +70,14 @@ class MongoDBPipeline(object):
 		try:
 			tmp = self.zh_user_col.find_one({"_id":user_id})
 			if tmp is None:
-				#not exist
+				return 0
+			elif self.zh_user_col.find({"_id":user_id})[0]['crawl_finish'] == 1:
 				return 0
 			else:
-				#user_id exist
 				return 1
 		except Exception as e:
 			self.client.close()
-			print '['+self._now_time+']'+' find error...'
+			print '['+self._now_time+']'+' user_id find error...'
 			#special case
 			return -2
 

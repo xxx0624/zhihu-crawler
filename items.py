@@ -7,7 +7,7 @@ class ZhihuUserItem(Item):
 	url = Field()
 	img = Field()
 	img_rule = [
-		'//div[@class="zm-profile-header-avatar-container "]/img[@class="Avatar Avatar--l"]/@src',
+		'//div[@class="body clearfix"]/img[@class="Avatar Avatar--l"]/@src',
 		'//div[@class="top-nav-profile"]/img[@class="Avatar"]/@src'
 	]
 	username = Field()
@@ -47,6 +47,14 @@ class ZhihuUserItem(Item):
 	view_num = Field()
 	view_num_rule = "//span[@class='zg-gray-normal']/strong/text()"
 	update_time = Field()
+
+	#if upload, 1;else 0
+	upload_img = Field()
+
+	#crawl all followers and followees finish?
+	#if finished is 1;else 0
+	crawl_finish = Field()
+	
 
 class ZhihuAskItem(Item):
 	_id = Field()
