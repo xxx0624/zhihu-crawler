@@ -10,9 +10,12 @@ from lxml import etree
 from datetime import datetime
 from zhihu_pipeline import MongoDBPipeline
 
+from qiniu import put_data, put_file, Auth, BucketManager
+
 import sys, time
 import logging, requests
 import codecs, json
+import urllib
 
 
 
@@ -165,8 +168,10 @@ class ZhihuUserCrawler(object):
 		if len(select_list) == 0:
 			select_list = [""]
 		zhihu_user['img'] = self._get_xl_img(''.join(select_list[0]))
-		#save the img
-		self._download_img(zhihu_user['img'], zhihu_user['_id'], IMG_FOLDER)
+		#download the img to local
+		self._download_img_urllib(zhihu_user['img'], zhihu_user['_id'], IMG_FOLDER)
+		#upload the img to qiniu
+		self._upload_zhihu_user_img_qiniu(zhihu_user['_id'], IMG_FOLDER)
 
 		print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+'get user:' + zhihu_user['_id'] + ' info!'
 
@@ -256,14 +261,44 @@ class ZhihuUserCrawler(object):
 			return img_url
 		return img_url[:_pos+1] + 'xl.jpg'
 
-	def _download_img(self, url, save_img_name, save_img_place):
+	def _download_img_requests(self, url, save_img_name, save_img_place):
+		print '['+self._now_time+']'+' '+' the imgurl is (' + url +")"
+		if 'http' not in url :
+			return 
+		if DOWNLOAD_FLAG == True:
+			try:
+				img =  requests.get(url, stream=True)
+				with open(save_img_place+'/'+save_img_name+'.jpg', 'wb') as fw:
+					for chunk in img.iter_content():
+						fw.write(chunk)
+			except Exception as e:
+				print '['+self._now_time+']'+' '+'the url:('+url+') dont get to local...'
+				print '['+self._now_time+']'+' '+'Exception:', e
+
+
+	def _download_img_urllib(self, url, save_img_name, save_img_place):
 		print '['+self._now_time+']'+' '+' the imgurl is (' + url +")"
 		if 'http' not in url:
 			return 
-		img =  requests.get(url, stream=True)
-		with open(save_img_place+'/'+save_img_name+'.jpg', 'wb') as fw:
-			for chunk in img.iter_content():
-				fw.write(chunk)
+		if DOWNLOAD_FLAG == True:
+			try:
+				urllib.urlretrieve(url, save_img_place+'/'+save_img_name+'.jpg')
+			except Exception as e:
+				print '['+self._now_time+']'+' '+'the url:('+url+') dont get to local...'
+				print '['+self._now_time+']'+' '+'Exception:', e
+
+	def _upload_zhihu_user_img_qiniu(self, img_name, img_place):
+		if UPLOAD_FLAG == True:
+			q = Auth(ACCESS_KEY, SECRET_KEY)
+			bucket = BucketManager(q)
+			mime_type = 'image/jpeg'
+			#delete the same file
+			del_ret, del_info = bucket.delete(BUCKET_NAME, img_name)
+			#insert the new file
+			token = q.upload_token(BUCKET_NAME, img_name)
+			insert_ret, insert_info =  put_file(token, img_name, img_place+'/'+img_name+'.jpg', mime_type=mime_type, check_crc=True)
+			if insert_info is not None and str(insert_info).split(',')[1].strip()=="status_code:200":
+				print '['+self._now_time+']'+' '+"upload img:"+img_name+' to bucket:'+BUCKET_NAME+'successfully...'
 
 	def _encode_zhihu_user_info(self, zhihu_user):
 		zhihu_user['username'] = zhihu_user['username'].encode('ISO 8859-1')

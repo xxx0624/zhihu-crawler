@@ -44,10 +44,13 @@
     update_time datetime # 信息更新时间，如 2014-05-17 11:15:00
     ```
 
-#开始爬取知乎zhihu信息
+#开始爬取知乎zhihu user信息
 
-1. 先在setting中设置知乎账号和密码以及开始的url
-2. python zhihu_user_crawler.py
+1. 在setting中设置知乎账号和密码以及开始的url
+2. 在setting中设置是否下载zhihu user头像，默认下载到UserImg文件夹中
+3. 在setting中设置是否将下载的zhihu user头像上传到七牛云中，默认上传
+4. 在setting中设置七牛云账号以及bucket相关信息
+5. python zhihu_user_crawler.py
    
 #查看运行结果
 

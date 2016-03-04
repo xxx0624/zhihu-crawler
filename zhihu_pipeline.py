@@ -24,7 +24,6 @@ class MongoDBPipeline(object):
 		self.gh_repo_col = self.db["gh_repo"]
 		'''
 
-
 	def saveOrUpdate(self, collection, item):
 		_id= dict(item).get("_id")
 		if _id is not None:

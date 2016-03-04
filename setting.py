@@ -22,6 +22,13 @@ MONGODB_PORT = 27017
 
 #the place for user img to save
 IMG_FOLDER = 'UserImg'
+DOWNLOAD_FLAG = True
+
+#qiniu
+ACCESS_KEY = 'C_Dp5znaDW3GEjqWhywKUc8s5EOgsabv2LZpu162'
+SECRET_KEY = 'RqyJYAmt4-_U5uZITsQI2GuWyponjtQ5Jz79Ard5'
+BUCKET_NAME = 'zhihu-user-img'
+UPLOAD_FLAG = True
 
 HEADER={
     "Host": "www.zhihu.com",
