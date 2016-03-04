@@ -31,6 +31,7 @@ class MongoDBPipeline(object):
 			try:
 				tmp = collection.find_one({"_id":_id})
 			except Exception as e:
+				self.client.close()
 				self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
 				self.db = self.client["zhihu"]
 				self.zh_user_col = self.db["zh_user"]
@@ -40,6 +41,7 @@ class MongoDBPipeline(object):
 				try:
 					collection.insert(dict(item))
 				except Exception as e:
+					self.client.close()
 					self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
 					self.db = self.client["zhihu"]
 					self.zh_user_col = self.db["zh_user"]
@@ -51,6 +53,7 @@ class MongoDBPipeline(object):
 				try:
 					collection.update({"_id":_id}, dict(item))
 				except Exception as e:
+					self.client.close()
 					self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
 					self.db = self.client["zhihu"]
 					self.zh_user_col = self.db["zh_user"]
@@ -74,18 +77,7 @@ class MongoDBPipeline(object):
 				#user_id exist
 				return 1
 		except Exception as e:
-			'''
-			self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
-			self.db = self.client["zhihu"]
-			self.zh_user_col = self.db["zh_user"]
-			tmp = self.zh_user_col.find_one({"_id":user_id})
-			if tmp is None:
-				#not exist
-				return 0
-			else:
-				#user_id exist
-				return 1
-			'''
+			self.client.close()
 			print '['+self._now_time+']'+' find error...'
 			#special case
 			return -2

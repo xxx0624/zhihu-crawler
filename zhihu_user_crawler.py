@@ -157,7 +157,11 @@ class ZhihuUserCrawler(object):
 		zhihu_user['collection_num'] = statistics[4]
 		zhihu_user['log_num'] = statistics[5]
 
-		select_list = selector.xpath(zhihu_user.img_rule)
+		select_list = []
+		for rule in zhihu_user.img_rule:
+			select_list = selector.xpath(rule)
+			if len(select_list) > 0:
+				break
 		if len(select_list) == 0:
 			select_list = [""]
 		zhihu_user['img'] = self._get_xl_img(''.join(select_list[0]))
@@ -253,7 +257,9 @@ class ZhihuUserCrawler(object):
 		return img_url[:_pos+1] + 'xl.jpg'
 
 	def _download_img(self, url, save_img_name, save_img_place):
-		print '['+self._now_time+']'+' '+' the imgurl is ' + url
+		print '['+self._now_time+']'+' '+' the imgurl is (' + url +")"
+		if 'http' not in url:
+			return 
 		img =  requests.get(url, stream=True)
 		with open(save_img_place+'/'+save_img_name+'.jpg', 'wb') as fw:
 			for chunk in img.iter_content():
