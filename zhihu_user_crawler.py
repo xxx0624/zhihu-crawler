@@ -9,14 +9,14 @@ from zhihu_common import ZhihuCommon
 from lxml import etree
 from datetime import datetime
 from zhihu_pipeline import MongoDBPipeline
-
 from qiniu import put_data, put_file, Auth, BucketManager
+from Queue import Queue
 
 import sys, time
 import logging, requests
-import codecs, json
-import urllib
-
+import codecs, json, urllib
+import threading, thread
+import zhihu_user_queue
 
 
 reload(sys)
@@ -225,7 +225,7 @@ class ZhihuUserCrawler(object):
 		#followees
 		response, soup = ZhihuCommon.get('https://www.zhihu.com/people/'+zhihu_user['_id']+'/followees')
 		self.parse_follow_url(response, soup, depth)
-		zhihu_user['crawl_finish'] = 1
+		#zhihu_user['crawl_finish'] = 1
 		print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+'user:'+zhihu_user['_id']+' \'s all follow had been parsed!'
 		
 		return
@@ -235,10 +235,20 @@ class ZhihuUserCrawler(object):
 		for link in selector.xpath('//div[@class="zm-list-content-medium"]/h2/a/@href'):
 			#link  ===> http://www.zhihu.com/people/...
 			username_tmp = link.split('/')[-1]
-			if self.mgd.find_item(username_tmp) == 0:
-				print '\n['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+"start parse user:" + username_tmp + '...'
-				response, soup = ZhihuCommon.get("https://www.zhihu.com/people/"+username_tmp+"/about")
-				self.parse_zhihu_user(response, soup, depth+1)
+			find_result = self.mgd.find_item(username_tmp)
+			if find_result != 1:
+				zhihu_user_queue.put_user(username_tmp)
+		
+		print '['+self._now_time+']'+' queue size is '+str(zhihu_user_queue.q_size())
+		while True:
+			if zhihu_user_queue.q_size() <= 0:
+				break
+			import main
+			username_tmp = zhihu_user_queue.get_user()
+			print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+"start parse user:" + username_tmp + '...'
+			response, soup = ZhihuCommon.get("https://www.zhihu.com/people/"+username_tmp+"/about")
+			self.parse_zhihu_user(response, soup, depth+1)
+			
 
 	def save_zhihu_user(self, zhihu_user):
 		print '['+self._now_time+']'+' '+'start record the user ', zhihu_user['_id']
@@ -344,6 +354,7 @@ class ZhihuUserCrawler(object):
 		zhihu_user['educations'] = temp_list
 		return zhihu_user
 			
+'''
 if __name__ == '__main__':
 	zhc = ZhihuUserCrawler()
 
@@ -352,4 +363,5 @@ if __name__ == '__main__':
 	if login_flag:
 		time.sleep(SLEEP_TIME)
 		zhc.start_parse("")
-	print '['+zhc._now_time+']'+' '+'over......................................'
+	print '['+zhc._now_time+']'+' '+'over....................'
+'''

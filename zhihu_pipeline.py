@@ -6,10 +6,11 @@ import json
 from pymongo import MongoClient
 from datetime import datetime
 
+
 class MongoDBPipeline(object):
 	def __init__(self):
 		self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
-		self.db = self.client["zhihu"]
+		self.db = self.client["zhihu_multhread"]
 		self.zh_user_col = self.db["zh_user"]
 		self._now_time = str(datetime.strptime(str(datetime.today()), "%Y-%m-%d %H:%M:%S.%f"))
 
@@ -65,18 +66,24 @@ class MongoDBPipeline(object):
 
 	def find_item(self, user_id):
 		if user_id is None:
-			print 'the user '+user_id+' is None, cannot find it in mongodb...'
+			#print 'the user '+user_id+' is None...'
 			return -1
 		try:
 			tmp = self.zh_user_col.find_one({"_id":user_id})
 			if tmp is None:
-				return 0
-			elif self.zh_user_col.find({"_id":user_id})[0]['crawl_finish'] == 1:
-				return 0
+				#user not exist
+				#print 'the user '+user_id+' is None, cannot find it in mongodb...'
+				return -1
 			else:
-				return 1
+				#0 not in queue(follow url is ok)
+				#1 crawl finish
+				#2 in queue // TO DO
+				return self.zh_user_col.find({"_id":user_id})[0]['crawl_finish']
 		except Exception as e:
 			self.client.close()
+			self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
+			self.db = self.client["zhihu"]
+			self.zh_user_col = self.db["zh_user"]
 			print '['+self._now_time+']'+' user_id find error...'
 			#special case
 			return -2

@@ -42,6 +42,7 @@
     followee_num int, # 关注数，如 1515
     follower_num int, # 被关注数（粉丝），如 319529
     update_time datetime # 信息更新时间，如 2014-05-17 11:15:00
+    crawl_finish # 该用户是否爬取完成 TODO//改为广度优先搜索故放弃该字段
     ```
 
 #开始爬取知乎zhihu user信息

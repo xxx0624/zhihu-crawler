@@ -13,7 +13,7 @@ PASSWORD = 'qqqqxxx0624'
 START_URL = "https://www.zhihu.com/people/xxx0624/about"
 
 #the max depth to follow url
-MAX_DEPTH = 20
+MAX_DEPTH = 50
 
 #mongodb ip
 MONGODB_IP = "localhost"
@@ -28,7 +28,10 @@ DOWNLOAD_FLAG = True
 ACCESS_KEY = 'C_Dp5znaDW3GEjqWhywKUc8s5EOgsabv2LZpu162'
 SECRET_KEY = 'RqyJYAmt4-_U5uZITsQI2GuWyponjtQ5Jz79Ard5'
 BUCKET_NAME = 'zhihu-user-img'
-UPLOAD_FLAG = True
+UPLOAD_FLAG = False
+
+#the number of threads
+THREADS_NUM = 15
 
 HEADER={
     "Host": "www.zhihu.com",
