@@ -30,10 +30,12 @@ class ZhihuUserCrawler(object):
 	_password = PASSWORD
 	_xsrf = ''
 	mgd = None
-	_now_time = str(datetime.strptime(str(datetime.today()), "%Y-%m-%d %H:%M:%S.%f"))
 
 	def __init__(self):
 		self.mgd = MongoDBPipeline()
+
+	def _now_time(self):
+		return str(datetime.strptime(str(datetime.today()), "%Y-%m-%d %H:%M:%S.%f"))
 
 	def init_xsrf(self):
 		try:
@@ -42,7 +44,7 @@ class ZhihuUserCrawler(object):
 			xsrf = input_tag["value"]
 			#ZhihuCommon.set_xsrf(xsrf)
 			self._xsrf = xsrf
-			print '['+self._now_time+']'+'set the xsrf is :' + xsrf
+			print '['+self._now_time()+']'+'set the xsrf is :' + xsrf
 		except Exception as e:
 			logging.error("fail to init xsrf. " + str(e))
 
@@ -60,30 +62,30 @@ class ZhihuUserCrawler(object):
 		
 		if reponse_login.json()['r'] == 0:
 			time.sleep(SLEEP_TIME)
-			print '['+self._now_time+']'+' '+'login successfully...'
+			print '['+self._now_time()+']'+'login successfully...'
 			return True
 		else:
-			print '['+self._now_time+']'+' '+'login...fail...sad...story...'
+			print '['+self._now_time()+']'+'login...fail...sad...story...'
 			return False
 
-	def start_parse(self, START_URL):
+	def start_parse(self, START_URL, thread_id):
 		if START_URL == "":
 			START_URL = "https://www.zhihu.com/people/xxx0624/about"
-		print '['+self._now_time+']'+' '+'start parse url:' + START_URL + '...'
+		print '\n['+self._now_time()+']'+'start parse url:' + START_URL + '...'
 		response, soup = ZhihuCommon.get(START_URL)
-		self.parse_zhihu_user(response, soup, 0)
-		print '['+self._now_time+']'+' '+'finish the zhihu-user-crawler...23333333333333333...'
+		self.parse_zhihu_user(response, soup, 0, thread_id)
+		print '['+self._now_time()+']'+'finish the zhihu-user-crawler...'
 		return 
 
-	def parse_zhihu_user(self, response, soup, depth):
+	def parse_zhihu_user(self, response, soup, depth, thread_id):
 		zhihu_user = ZhihuUserItem()
 		zhihu_user['upload_img'] = 0
 		zhihu_user['crawl_finish'] = 0
 		selector = etree.HTML(str(soup))
 		time.sleep(SLEEP_TIME)
 		#get zhihu_user info
-		zhihu_user['_id']=zhihu_user['username']= response.url.split('/')[-2]
-		zhihu_user['url']= response.url
+		zhihu_user['_id'] = zhihu_user['username'] = response.url.split('/')[-2]
+		zhihu_user['url'] = response.url
 
 		select_list = selector.xpath(zhihu_user.nickname_rule)
 		if len(select_list) == 0:
@@ -178,7 +180,7 @@ class ZhihuUserCrawler(object):
 			if flag == True:
 				zhihu_user['upload_img'] = 1
 
-		print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+'get user:' + zhihu_user['_id'] + ' info!'
+		print '['+self._now_time()+']'+"[depth = "+str(depth)+"]"+'[thread_id='+str(thread_id)+']'+'get user:' + zhihu_user['_id'] + ' info!'
 
 		'''
 		#just test
@@ -190,15 +192,17 @@ class ZhihuUserCrawler(object):
 		'''
 
 		if self._dead_zhihu_user(zhihu_user):
-			print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+'bi~bi~bi~~~user:' + zhihu_user['_id'] + ' maybe dead user...'
+			print '['+self._now_time()+']'+"[depth = "+str(depth)+"]"+'[thread_id='+str(thread_id)+']'+'bi~bi~bi~~~user:' + zhihu_user['_id'] + ' maybe dead user...'
 			return 
 		
 		#one user is ok
 		save_user = self.save_zhihu_user(zhihu_user)
 		if save_user:
-			print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+'save user:' + zhihu_user['_id'] + ' to mongod! It\'s done! '
+			print '['+self._now_time()+']'+"[depth = "+str(depth)+"]"+'save user:' + zhihu_user['_id'] + ' to mongod...'
 		else:
-			print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+'canot save user:' + zhihu_user['_id'] + ' to mongod successfully...'
+			print '['+self._now_time()+']'+"[depth = "+str(depth)+"]"+'canot save user:' + zhihu_user['_id'] + ' to mongod successfully...'
+		
+		print '['+self._now_time()+']'+'queue size is '+str(zhihu_user_queue.q_size())
 		
 		if depth > MAX_DEPTH:
 			return 
@@ -220,17 +224,17 @@ class ZhihuUserCrawler(object):
 		'''
 		#followers
 		response, soup = ZhihuCommon.get('https://www.zhihu.com/people/'+zhihu_user['_id']+'/followers')
-		self.parse_follow_url(response, soup, depth)
-		print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+'user:'+zhihu_user['_id']+' \'s all follow had been parsed!'
+		self.parse_follow_url(response, soup, depth, thread_id)
+		print '['+self._now_time()+']'+"[depth = "+str(depth)+"]"+'[thread_id='+str(thread_id)+']'+'user:'+zhihu_user['_id']+' \'s all follow had been parsed!'
 		#followees
 		response, soup = ZhihuCommon.get('https://www.zhihu.com/people/'+zhihu_user['_id']+'/followees')
-		self.parse_follow_url(response, soup, depth)
+		self.parse_follow_url(response, soup, depth, thread_id)
 		#zhihu_user['crawl_finish'] = 1
-		print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+'user:'+zhihu_user['_id']+' \'s all follow had been parsed!'
+		print '['+self._now_time()+']'+"[depth = "+str(depth)+"]"+'[thread_id='+str(thread_id)+']'+'user:'+zhihu_user['_id']+' \'s all follow had been parsed!'
 		
 		return
 
-	def parse_follow_url(self, response, soup, depth):
+	def parse_follow_url(self, response, soup, depth, thread_id):
 		selector = etree.HTML(str(soup))
 		for link in selector.xpath('//div[@class="zm-list-content-medium"]/h2/a/@href'):
 			#link  ===> http://www.zhihu.com/people/...
@@ -239,27 +243,27 @@ class ZhihuUserCrawler(object):
 			if find_result != 1:
 				zhihu_user_queue.put_user(username_tmp)
 		
-		print '['+self._now_time+']'+' queue size is '+str(zhihu_user_queue.q_size())
 		while True:
 			if zhihu_user_queue.q_size() <= 0:
 				break
-			import main
 			username_tmp = zhihu_user_queue.get_user()
-			print '['+self._now_time+']'+' '+"[depth = "+str(depth)+"]"+' '+"start parse user:" + username_tmp + '...'
+			print '['+self._now_time()+']'+"[depth = "+str(depth)+"]"+"start parse user:" + username_tmp + '...'
 			response, soup = ZhihuCommon.get("https://www.zhihu.com/people/"+username_tmp+"/about")
-			self.parse_zhihu_user(response, soup, depth+1)
-			
+			self.parse_zhihu_user(response, soup, depth+1, thread_id)
+		
+		return 
 
 	def save_zhihu_user(self, zhihu_user):
-		print '['+self._now_time+']'+' '+'start record the user ', zhihu_user['_id']
+		print '['+self._now_time()+']'+'start record the user ', zhihu_user['_id']
 		if isinstance(zhihu_user, ZhihuUserItem):
 			if isinstance(self.mgd, MongoDBPipeline):
 				self.mgd.process_item(zhihu_user)
+				print '['+self._now_time()+']'+'record the user ', zhihu_user['_id'], ' ok...'
 				return True
 			else:
-				print '['+self._now_time+']'+' '+"mgd is err............."
+				print '['+self._now_time()+']'+"mgd is err............."
 		else:
-			print '['+self._now_time+']'+' '+'zhihu_user item err.............'
+			print '['+self._now_time()+']'+'zhihu_user item err.............'
 		return False
 
 	def _dead_zhihu_user(self, zhihu_user):
@@ -284,7 +288,7 @@ class ZhihuUserCrawler(object):
 		return img_url[:_pos+1] + 'xl.jpg'
 
 	def _download_img_requests(self, url, save_img_name, save_img_place):
-		print '['+self._now_time+']'+' '+' the img url is (' + url +")"
+		print '['+self._now_time()+']'+'the img url is (' + url +")"
 		if 'http' not in url :
 			return 
 		if DOWNLOAD_FLAG == True:
@@ -295,25 +299,25 @@ class ZhihuUserCrawler(object):
 						fw.write(chunk)
 				return True
 			except Exception as e:
-				print '['+self._now_time+']'+' '+'the url:('+url+') dont get to local...'
-				print '['+self._now_time+']'+' '+'Exception:', e
+				print '['+self._now_time()+']'+'the url:('+url+') dont get to local...'
+				print '['+self._now_time()+']'+'Exception:', e
 				return False
 		else:
 			return False
 
 
 	def _download_img_urllib(self, url, save_img_name, save_img_place):
-		print '['+self._now_time+']'+' '+' the img url is (' + url +")"
+		print '['+self._now_time()+']'+'the img url is (' + url +")"
 		if 'http' not in url:
 			return 
 		if DOWNLOAD_FLAG == True:
 			try:
 				urllib.urlretrieve(url, save_img_place+'/'+save_img_name+'.jpg')
-				print '['+self._now_time+']'+' '+'the url:('+url+') get done!'
+				print '['+self._now_time()+']'+'the url:('+url+') get done!'
 				return True
 			except Exception as e:
-				print '['+self._now_time+']'+' '+'the url:('+url+') dont get to local...'
-				print '['+self._now_time+']'+' '+'Exception:', e
+				print '['+self._now_time()+']'+'the url:('+url+') dont get to local...'
+				print '['+self._now_time()+']'+'Exception:', e
 				return False
 		else:
 			return False
@@ -329,7 +333,7 @@ class ZhihuUserCrawler(object):
 			token = q.upload_token(BUCKET_NAME, img_name)
 			insert_ret, insert_info = put_file(token, img_name, img_place+'/'+img_name+'.jpg', mime_type=mime_type, check_crc=True)
 			if insert_info is not None and str(insert_info).split(',')[1].strip()=="status_code:200":
-				print '['+self._now_time+']'+' '+"upload img:"+img_name+' to bucket:'+BUCKET_NAME+'successfully...'
+				print '['+self._now_time()+']'+"upload img:"+img_name+' to bucket:'+BUCKET_NAME+'successfully...'
 				return True
 			else:
 				return False
@@ -363,5 +367,5 @@ if __name__ == '__main__':
 	if login_flag:
 		time.sleep(SLEEP_TIME)
 		zhc.start_parse("")
-	print '['+zhc._now_time+']'+' '+'over....................'
+	print '['+zhc._now_time()+']'+'over....................'
 '''

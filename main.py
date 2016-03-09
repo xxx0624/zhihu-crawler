@@ -29,16 +29,28 @@ class MyThread(threading.Thread):
 def spider_thread(thread_id):
 	if zhihu_user_queue.q_size() > 0:
 		start_user_id = zhihu_user_queue.get_user()
-		print 't_id:'+str(thread_id)+' queue size = ', zhihu_user_queue.q_size()
+		print 'thread_id:'+str(thread_id)+' queue size = ', zhihu_user_queue.q_size()
 		zhc = ZhihuUserCrawler()
-		print '['+zhc._now_time+']'+' '+'t_id:'+str(thread_id)+' start...'
+		print '['+zhc._now_time()+']'+'thread_id:'+str(thread_id)+' start...'
 		#login_flag = zhc.login()
 		#if login_flag:
-		zhc.start_parse("https://www.zhihu.com/people/"+start_user_id+"/about")
-		print '['+zhc._now_time+']'+' '+'t_id:'+str(thread_id)+' over...\n'
+		zhc.start_parse("https://www.zhihu.com/people/"+start_user_id+"/about", thread_id)
+		print '['+zhc._now_time()+']'+'thread_id:'+str(thread_id)+' over...\n'
 		
+def setting_test():
+	if EMAIL == '' or PASSWORD == '':
+		print 'ERROR:email or pwd in setting.py is null...'
+		return False
+	if ACCESS_KEY == '' or SECRET_KEY == '' or BUCKET_NAME == '':
+		print "ERROR:access_key or secret_key or bucket_name in setting.py is null..."
+		print "if you dont want to upload pics to QiniuCloud, you should set upload_flag = False"
+		return False
+	return True
 
+	
 if __name__ == '__main__':
+
+	setting_test()
 	
 	zhihu_user_queue.put_user('xxx0624')
 	zhihu_user_queue.put_user('zihaolucky')
@@ -58,9 +70,11 @@ if __name__ == '__main__':
 			my_thread = MyThread(spider_thread, cur_cnt_thread)			
 			cur_cnt_thread += 1
 			thread_list.append(my_thread)
+
 		
 		for item in thread_list:
 			item.start()
+			time.sleep(10)
 			
 		for item in thread_list:
 			item.join()

@@ -4,16 +4,16 @@
 SLEEP_TIME = 0
 
 #user name
-EMAIL = '273589630@qq.com'
+EMAIL = ''
 
 #user pwd
-PASSWORD = 'qqqqxxx0624'
+PASSWORD = ''
 
 #start url
 START_URL = "https://www.zhihu.com/people/xxx0624/about"
 
 #the max depth to follow url
-MAX_DEPTH = 50
+MAX_DEPTH = 5
 
 #mongodb ip
 MONGODB_IP = "localhost"
@@ -25,13 +25,13 @@ IMG_FOLDER = 'UserImg'
 DOWNLOAD_FLAG = True
 
 #qiniu
-ACCESS_KEY = 'C_Dp5znaDW3GEjqWhywKUc8s5EOgsabv2LZpu162'
-SECRET_KEY = 'RqyJYAmt4-_U5uZITsQI2GuWyponjtQ5Jz79Ard5'
-BUCKET_NAME = 'zhihu-user-img'
-UPLOAD_FLAG = False
+ACCESS_KEY = ''
+SECRET_KEY = ''
+BUCKET_NAME = ''
+UPLOAD_FLAG = True
 
 #the number of threads
-THREADS_NUM = 15
+THREADS_NUM = 30
 
 HEADER={
     "Host": "www.zhihu.com",
