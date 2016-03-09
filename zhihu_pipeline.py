@@ -10,7 +10,7 @@ from datetime import datetime
 class MongoDBPipeline(object):
 	def __init__(self):
 		self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
-		self.db = self.client["zhihu_multhread"]
+		self.db = self.client["zhihu"]
 		self.zh_user_col = self.db["zh_user"]
 		self._now_time = str(datetime.strptime(str(datetime.today()), "%Y-%m-%d %H:%M:%S.%f"))
 
