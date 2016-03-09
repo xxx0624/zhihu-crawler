@@ -47,10 +47,11 @@ def setting_test():
 		return False
 	return True
 
-	
+
 if __name__ == '__main__':
 
-	setting_test()
+	if setting_test() == False:
+		exit()
 	
 	zhihu_user_queue.put_user('xxx0624')
 	zhihu_user_queue.put_user('zihaolucky')
