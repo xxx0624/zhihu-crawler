@@ -41,10 +41,11 @@ def setting_test():
 	if EMAIL == '' or PASSWORD == '':
 		print 'ERROR:email or pwd in setting.py is null...'
 		return False
-	if ACCESS_KEY == '' or SECRET_KEY == '' or BUCKET_NAME == '':
-		print "ERROR:access_key or secret_key or bucket_name in setting.py is null..."
-		print "if you dont want to upload pics to QiniuCloud, you should set upload_flag = False"
-		return False
+	if UPLOAD_FLAG == True:
+		if ACCESS_KEY == '' or SECRET_KEY == '' or BUCKET_NAME == '':
+			print "ERROR:access_key or secret_key or bucket_name in setting.py is null..."
+			print "if you dont want to upload pics to QiniuCloud, you should set upload_flag = False"
+			return False
 	return True
 
 
