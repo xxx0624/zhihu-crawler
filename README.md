@@ -49,7 +49,7 @@
 
 1. 在setting中设置知乎账号和密码以及开始的url
 2. 在setting中设置是否下载zhihu user头像，默认下载到UserImg文件夹中
-3. 在setting中设置是否将下载的zhihu user头像上传到七牛云中，默认上传
+3. 在setting中设置是否将下载的zhihu user头像上传到七牛云中，默认不上传
 4. 在setting中设置七牛云账号以及bucket相关信息
 5. python main.py
    
