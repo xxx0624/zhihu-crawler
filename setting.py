@@ -28,7 +28,7 @@ DOWNLOAD_FLAG = True
 ACCESS_KEY = ''
 SECRET_KEY = ''
 BUCKET_NAME = ''
-UPLOAD_FLAG = True
+UPLOAD_FLAG = False
 
 #the number of threads
 THREADS_NUM = 30
