@@ -1,22 +1,22 @@
-#crawl zhihu user info
+# crawl zhihu user info
 
 爬取知乎(zhihu)用户的代码，数据存储于mongodb
 
-#install(仅依赖scrapy.item&Field)
+## install
 
-0. python version = 2.7.10
+1. python version = 2.7.10
 
-1. 安装scrapy
+2. 安装scrapy
 
-2. 安装mongodb在本机
+3. 安装mongodb在本机
 
-3. mongodb: ip默认localhost，port默认27017 (配置在setting.py)
+4. mongodb: ip默认`localhost`，port默认`27017` (配置在`setting.py`)
 
-4. mongodb: collection如下：
+5. mongodb: collection如下：
 
    - `zh_user`: 知乎用户
 
-5. mongodb: db.zhihu.zh_user 用户表结构
+6. mongodb: db.zhihu.zh_user 用户表结构
     ```
     _id int, # 用户id
     url string,
@@ -45,7 +45,7 @@
     crawl_finish # 该用户是否爬取完成 TODO//改为广度优先搜索故放弃该字段
     ```
 
-#开始爬取知乎zhihu user信息
+## 开始爬取
 
 1. 在setting中设置知乎账号和密码以及开始的url
 2. 在setting中设置是否下载zhihu user头像，默认下载到UserImg文件夹中
@@ -53,7 +53,7 @@
 4. 在setting中设置七牛云账号以及bucket相关信息
 5. python main.py
    
-#查看运行结果
+## 查看运行结果
 
 ```
 > use zhihu
@@ -62,7 +62,7 @@ switched to db zhihu
 10000
 ```
 
-#Reference
+# Reference
 
 [SmileXie / zhihu_crawler](https://github.com/SmileXie/zhihu_crawler)
 
