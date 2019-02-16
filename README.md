@@ -63,7 +63,6 @@ switched to db zhihu
 ```
 
 # Reference
-
 [SmileXie / zhihu_crawler](https://github.com/SmileXie/zhihu_crawler)
 
 [javachen / scrapy-zhihu-github](https://github.com/javachen/scrapy-zhihu-github)
